@@ -1,4 +1,5 @@
 """Move complete applications between operator queues and the archive."""
+from bot.contact_info import CONTACT_FOOTER_HTML
 import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -9,9 +10,9 @@ from bot.config import ARCHIVE_GROUP, CHALA_RASM_GROUP, OTHER_PARK_GROUP
 
 logger = logging.getLogger(__name__)
 READY_TEXT = (
-    "✅ TAXICHI BOLAiga arizangiz muvaffaqiyatli qabul qilindi!\n\n"
+    "✅ TAXICHI BOLA’ga arizangiz muvaffaqiyatli qabul qilindi!\n\n"
     "📞 Tez orada operatorlarimiz siz bilan bog'lanishadi.\n\n"
-    "💬 Savollar uchun menyudagi «Bog‘lanish» bo‘limiga o‘ting."
+    f"{CONTACT_FOOTER_HTML}"
 )
 
 

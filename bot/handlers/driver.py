@@ -1,3 +1,4 @@
+from bot.contact_info import CONTACT_FOOTER_HTML
 import asyncio
 import logging
 import re
@@ -580,7 +581,7 @@ async def get_car_plate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
         f"Ariza kodi: <code>{h(context.user_data['_application_code'])}</code>\n"
         "Hujjatlaringiz operatorga yuborildi. Natija yoki qo‘shimcha ma’lumot "
         "kerak bo‘lsa, shu bot orqali xabar beramiz.\n\n"
-        "Aloqa ma’lumotlari — menyudagi «Bog‘lanish» bo‘limida.",
+        f"{CONTACT_FOOTER_HTML}",
         parse_mode="HTML", reply_markup=_regional_keyboard(context),
     )
     clear_application(context)

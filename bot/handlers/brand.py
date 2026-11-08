@@ -1,3 +1,4 @@
+from bot.contact_info import CONTACT_FOOTER_HTML
 import logging
 import re
 from html import escape as h
@@ -296,10 +297,11 @@ async def brand_get_plate(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return BRAND_PLATE
 
     await update.message.reply_text(
-        "✅ *Arizangiz qabul qilindi*\n\n"
-        f"{region_name(region)} — {_kind_title(kind)} arizangiz qabul qilindi. "
-        "Tez orada operatorlarimiz bog‘lanadi.",
-        parse_mode="Markdown", reply_markup=_regional_keyboard(context),
+        "✅ <b>Arizangiz qabul qilindi</b>\n\n"
+        f"{h(region_name(region))} — {h(_kind_title(kind))} arizangiz qabul qilindi. "
+        "Operatorlarimiz murojaatingizni ko‘rib chiqib, siz bilan bog‘lanadi.\n\n"
+        f"{CONTACT_FOOTER_HTML}",
+        parse_mode="HTML", reply_markup=_regional_keyboard(context),
     )
     clear_application(context)
     return ConversationHandler.END

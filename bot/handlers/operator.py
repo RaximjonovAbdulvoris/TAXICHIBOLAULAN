@@ -5,6 +5,7 @@ The applicant's Telegram id is deliberately only an attribute of an
 application: one applicant can have more than one regional application at the
 same time.
 """
+from bot.contact_info import CONTACT_FOOTER_HTML
 import logging
 from html import escape as h
 
@@ -43,7 +44,7 @@ _ARCHIVES_IN_FLIGHT: set[tuple[int, int]] = set()
 READY_TEXT = (
     "✅ <b>Arizangiz bo‘yicha ish yakunlandi</b>\n\n"
     "Murojaatingiz operator tomonidan ko‘rib chiqildi va yakunlandi.\n"
-    "Savollar uchun menyudagi «Bog‘lanish» bo‘limiga o‘ting."
+    f"{CONTACT_FOOTER_HTML}"
 )
 
 
@@ -54,7 +55,7 @@ INCOMPLETE_TEXT = (
     "Iltimos, bot menyusidagi «📝 Ulanish uchun Ariza» bo‘limi orqali arizani "
     "qaytadan to‘ldirib, barcha so‘ralgan hujjat va avtomobil rasmlarini "
     "to‘liq, tiniq va chetlari kesilmagan holda yuboring.\n\n"
-    "Savollaringiz bo‘lsa, menyudagi «Bog‘lanish» bo‘limiga o‘ting."
+    f"{CONTACT_FOOTER_HTML}"
 )
 OTHER_PARK_TEXT = (
     "🚕 <b>Arizangiz bo‘yicha ma’lumot</b>\n\n"
@@ -64,7 +65,7 @@ OTHER_PARK_TEXT = (
     "Iltimos, ro‘yxatdan o‘tgan taksoparkingiz bilan bog‘lanib, "
     "TAXICHI BOLA taksoparkiga o‘tish masalasini hal qiling. "
     "Shundan so‘ng biz bilan bog‘lanishingiz mumkin.\n\n"
-    "Yordam uchun menyudagi «Bog‘lanish» bo‘limiga o‘ting."
+    f"{CONTACT_FOOTER_HTML}"
 )
 
 

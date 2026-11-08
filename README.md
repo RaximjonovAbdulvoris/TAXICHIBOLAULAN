@@ -17,7 +17,7 @@ LIDERBOT asosida alohida tayyorlangan bitta taksopark boti. Asl LIDER repozitori
 ## Sozlash
 Python 3.11+, `requirements.txt` va OCR uchun `requirements-ocr.txt` kerak.
 `.env.example`ni alohida `.env`ga ko‘chiring. Token, beshta guruh (ariza/brend/arxiv/chala/boshqa park), CONTACT_PHONE, CONTACT_TELEGRAM, OFFICE_ADDRESS, OFFICE_MAP_URL ni to‘ldiring.
-Aloqa/ofis qiymatlari berilmaguncha bot ularni hali qo‘shilmagan deb ko‘rsatadi; boshqa park kontaktlari ishlatilmaydi.
+Standart aloqa: +998 90 546 88 66, operator @Wbtaxichibola, kanal @wb_taxichibola. Ofis: Farg‘ona shahri, Sohibqiron Temur ko‘chasi, 36-uy. Xaritasi va ofis rasmi qo‘shilgan. Rasm yuborilmasa manzil matn va xarita tugmasi bilan yuboriladi. CONTACT_CHANNEL ham muhitdan almashtiriladi.
 
 Muhit faylini systemd EnvironmentFile orqali yuklang. Start: `python -m bot.main`.
 Bir token uchun bitta jarayon ishlasin. PERSIST_DIR yangi bot uchun alohida, yozish mumkin bo‘lgan papka bo‘lsin. Boshqa bot tokeni yoki persistence fayllarini ko‘chirmang.

@@ -1,10 +1,16 @@
 """Single-city TAXICHI BOLA menu and configurable public information."""
-import os
 import re
+import logging
+from pathlib import Path
+from hashlib import sha256
 from html import escape
 from telegram import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton, Update
 from telegram.ext import ContextTypes, ConversationHandler, MessageHandler, filters
 from bot.presentation import menu_button
+from bot.contact_info import PHONE, ADMIN, CHANNEL, ADDRESS, MAP_URL
+
+logger = logging.getLogger(__name__)
+OFFICE_PHOTO = Path(__file__).resolve().parents[1] / 'templates' / 'office.jpg'
 
 MENU_DRIVER = "📝 Ulanish uchun Ariza"
 MENU_BRAND = "🎨 Brend Ariza"
@@ -22,7 +28,9 @@ def main_keyboard(region=None):
 
 MAIN_KEYBOARD = main_keyboard()
 WELCOME_TEXT = (
-    "🚖 <b>TAXICHI BOLA</b>\nHaydovchilar uchun ariza markazi\n\n"
+    "🚖 <b>TAXICHI BOLA’ga xush kelibsiz!</b>\n\n"
+    "Wildberries Taxi’da ishlash uchun arizangizni shu yerda qoldiring. "
+    "Hujjatlarni yuboring — operatorlarimiz murojaatingizni ko‘rib chiqadi.\n\n"
     "📝 <b>Ulanish uchun ariza</b> — hujjatlaringizni yuborib, ro‘yxatdan o‘tish.\n"
     "🎨 <b>Brend ariza</b> — avtomobilni brendlash uchun murojaat.\n"
     "📍 <b>Ofis manzili</b> — manzil va xarita.\n"
@@ -40,25 +48,50 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def show_contact(update, context):
     context.user_data.clear()
-    lines = ['📞 <b>TAXICHI BOLA — Bog‘lanish</b>']
-    phone = os.environ.get('CONTACT_PHONE', '').strip()
-    username = os.environ.get('CONTACT_TELEGRAM', '').strip().lstrip('@')
-    if phone:
-        lines.append('Telefon: ' + escape(phone))
-    if re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{4,31}', username):
-        lines.append('Telegram: @' + escape(username))
-    if len(lines) == 1:
-        lines.append('Aloqa ma’lumotlari tez orada qo‘shiladi.')
-    await update.effective_message.reply_text('\n\n'.join(lines), parse_mode='HTML', reply_markup=main_keyboard())
+    text = ('📞 <b>TAXICHI BOLA — Bog‘lanish</b>\n\n'
+            'Ulanish, hujjatlar yoki arizangiz bo‘yicha savolingiz bormi? '
+            'Biz bilan bog‘laning — yordam beramiz.\n\n'
+            f'☎️ <b>Park telefoni:</b> {escape(PHONE)}\n'
+            f'✉️ <b>Telegram operator:</b> @{escape(ADMIN)}\n'
+            f'📢 <b>Rasmiy kanal:</b> @{escape(CHANNEL)}')
+    rows = []
+    if re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{4,31}', ADMIN):
+        rows.append([InlineKeyboardButton('✉️ Operatorga yozish', url=f'https://t.me/{ADMIN}')])
+    if re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{4,31}', CHANNEL):
+        rows.append([InlineKeyboardButton('📢 Rasmiy kanal', url=f'https://t.me/{CHANNEL}')])
+    await update.effective_message.reply_text(text, parse_mode='HTML',
+        reply_markup=InlineKeyboardMarkup(rows) if rows else main_keyboard(), disable_web_page_preview=True)
     return ConversationHandler.END
 
 
 async def show_office(update, context):
     context.user_data.clear()
-    address = os.environ.get('OFFICE_ADDRESS', '').strip()
-    url = os.environ.get('OFFICE_MAP_URL', '').strip()
-    text = '📍 <b>TAXICHI BOLA — Ofis manzili</b>\n\n' + escape(address or 'Ofis manzili tez orada qo‘shiladi.')
+    url = MAP_URL
+    text = ('📍 <b>TAXICHI BOLA — Farg‘ona ofisi</b>\n\n'
+            f'<b>Manzil:</b> {escape(ADDRESS)}\n\n'
+            'Taksoparkka ulanish yoki hujjatlar bo‘yicha yordam olish uchun '
+            'ofisimizga tashrif buyuring.\n\n'
+            f'📞 <b>Telefon:</b> {escape(PHONE)}\n'
+            f'✉️ <b>Telegram:</b> @{escape(ADMIN)}\n\n'
+            'Yo‘lni topish uchun quyidagi «Xaritada ochish» tugmasini bosing.')
     markup = InlineKeyboardMarkup([[InlineKeyboardButton('🗺 Xaritada ochish', url=url)]]) if re.fullmatch(r'https://(?:yandex\.(?:uz|ru|com)|maps\.app\.goo\.gl|maps\.google\.com)/[^\s]+', url) else main_keyboard()
+    if OFFICE_PHOTO.is_file():
+        photo_hash = sha256(OFFICE_PHOTO.read_bytes()).hexdigest()
+        cached = context.bot_data.get('office_photo_cache', {})
+        try:
+            if cached.get('hash') == photo_hash and cached.get('file_id'):
+                sent = await update.effective_message.reply_photo(photo=cached['file_id'], caption=text,
+                    parse_mode='HTML', reply_markup=markup, read_timeout=30, write_timeout=30)
+            else:
+                with OFFICE_PHOTO.open('rb') as photo:
+                    sent = await update.effective_message.reply_photo(photo=photo, caption=text,
+                        parse_mode='HTML', reply_markup=markup, read_timeout=30, write_timeout=30)
+            if getattr(sent, 'photo', None):
+                context.bot_data['office_photo_cache'] = {'hash': photo_hash, 'file_id': sent.photo[-1].file_id}
+            return ConversationHandler.END
+        except Exception as error:
+            context.bot_data.pop('office_photo_cache', None)
+            logger.warning('Office photo unavailable (%s); address sent as text.', type(error).__name__)
     await update.effective_message.reply_text(text, parse_mode='HTML', reply_markup=markup)
     return ConversationHandler.END
 
