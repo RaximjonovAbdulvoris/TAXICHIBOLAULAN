@@ -38,3 +38,34 @@ class MenuTests(unittest.TestCase):
         app=Application.builder().bot(PremiumEmojiBot('123:offline')).persistence(DictPersistence()).build()
         register_handlers(app)
         self.assertTrue(app.handlers)
+
+
+class PremiumAssetsTests(unittest.IsolatedAsyncioTestCase):
+    async def test_loaded_premium_icons_reach_menu_operator_and_text(self):
+        from types import SimpleNamespace as N
+        from unittest.mock import AsyncMock
+        from bot import presentation
+        from bot.handlers.operator import build_operator_keyboard
+        from bot.premium_emoji import premium_html
+        sets = {
+            'logowbtg': [('🚕', '1001')],
+            'FinanceEmoji': [('🎨', '1002')],
+            'NewsEmoji': [('📍', '1003'), ('✔️', '1004')],
+            'ApplicationEmoji': [('📦', '1005'), ('📄', '1006')],
+        }
+        async def get_pack(name):
+            return N(stickers=[N(emoji=e, custom_emoji_id=i) for e, i in sets.get(name, [])])
+        try:
+            await presentation.load_emoji_packs(N(bot=N(get_sticker_set=AsyncMock(side_effect=get_pack)),bot_data={}))
+            keyboard = start.main_keyboard().keyboard
+            self.assertEqual(keyboard[0][0].api_kwargs['icon_custom_emoji_id'], '1001')
+            self.assertEqual(keyboard[1][0].api_kwargs['icon_custom_emoji_id'], '1002')
+            self.assertEqual(keyboard[2][0].api_kwargs['icon_custom_emoji_id'], '1003')
+            self.assertEqual(keyboard[2][1].api_kwargs['icon_custom_emoji_id'], presentation.CONTACT_EMOJI_ID)
+            operator = build_operator_keyboard(42).inline_keyboard
+            self.assertEqual(operator[-1][0].api_kwargs['icon_custom_emoji_id'], '1005')
+            self.assertIn('emoji-id="1006"', premium_html('📄 Hujjatlar'))
+        finally:
+            presentation._PACK_ICONS.clear()
+            presentation._PACK_EMOJIS.clear()
+            presentation._PACK_GLYPHS.clear()
